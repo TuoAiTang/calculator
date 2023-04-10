@@ -2,6 +2,11 @@ package finance
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/TuoAiTang/gotable/color"
+	"github.com/TuoAiTang/gotable/table"
 )
 
 type Params struct {
@@ -34,6 +39,11 @@ type YearlyStats struct {
 	YearlyDeposit   float64 // 年存款
 }
 
+// IsFreedom
+func (y YearlyStats) IsFreedom() bool {
+	return y.FinancialIncome > y.Cost
+}
+
 // Calculate 计算
 func (p *Params) Calculate() []YearlyStats {
 	p.Print()
@@ -47,7 +57,7 @@ func (p *Params) Calculate() []YearlyStats {
 	})
 
 	lastStats := yearlyStats[0]
-	for lastStats.Age < 65 {
+	for lastStats.Age < 60 {
 		currentStats := YearlyStats{
 			Age:             lastStats.Age + 1,
 			YearEndDeposit:  lastStats.YearEndDeposit,
@@ -65,9 +75,54 @@ func (p *Params) Calculate() []YearlyStats {
 
 // Output
 func Output(yearlyStats []YearlyStats) {
-	for _, stats := range yearlyStats {
-		fmt.Printf("年龄: %d, 年末存款: %s, 支出: %s, 理财收入: %s\n", stats.Age, FormatW(stats.YearEndDeposit), FormatW(stats.Cost), FormatW(stats.FinancialIncome))
+	type data struct {
+		Age             string
+		YearEndDeposit  string
+		Cost            string
+		FinancialIncome string
 	}
+
+	var firstColoredFields int
+	free := func(d data) bool {
+		income, _ := strconv.ParseFloat(strings.Trim(d.FinancialIncome, "w"), 64)
+		cost, _ := strconv.ParseFloat(strings.Trim(d.Cost, "w"), 64)
+		return income > cost
+	}
+
+	dataSlice := make([]interface{}, 0)
+	//dataSlice = append(dataSlice, data{
+	//	Age:             "年龄",
+	//	YearEndDeposit:  "年末存款",
+	//	Cost:            "支出",
+	//	FinancialIncome: "理财收入",
+	//})
+	for _, v := range yearlyStats {
+		dataSlice = append(dataSlice, data{
+			Age:             strconv.FormatInt(int64(v.Age), 10),
+			YearEndDeposit:  FormatW(v.YearEndDeposit),
+			Cost:            FormatW(v.Cost),
+			FinancialIncome: FormatW(v.FinancialIncome),
+		})
+	}
+
+	//t, err := table.CreateTable([]string{"年龄", "年末存款", "支出", "理财收入"}, table.WithRecordColorController(func(record interface{}) color.Color {
+	t, err := table.Create(dataSlice, table.WithRecordColorController(func(record interface{}) color.Color {
+		r := record.(data)
+		if free(r) {
+			firstColoredFields++
+			if firstColoredFields <= 4 {
+				return color.RED
+			}
+			return color.CYAN
+		}
+		return ""
+	}))
+
+	if err != nil {
+		panic(err)
+	}
+
+	t.PrintTable()
 }
 
 // FormatW

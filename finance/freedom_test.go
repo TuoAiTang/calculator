@@ -11,8 +11,8 @@ func TestParams_Calculate(t *testing.T) {
 		CurrentMonthlyDeposit:   25000,
 		YearlyDepositGrowthRate: 5,
 		YearCost:                120000,
-		Inflation:               3,
-		FinancialIncomeRate:     6,
+		Inflation:               20,
+		FinancialIncomeRate:     3,
 	}
 
 	Output(p.Calculate())
