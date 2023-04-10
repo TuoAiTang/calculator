@@ -1,7 +1,6 @@
 package finance
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/tuoaitang/calculator/db"
@@ -19,11 +18,11 @@ func TestParams_Calculate(t *testing.T) {
 		FinancialIncomeRate:     3,
 	}
 
-	err := db.Finance.AutoMigrate(&model.YearlyStats{})
+	err := db.Finance.Exec("delete from  yearly_stats").Error
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = db.Finance.Exec("DELETE FROM yearly_stats").Error
+	err = db.Finance.AutoMigrate(&model.YearlyStats{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,8 +34,8 @@ func TestParams_Calculate(t *testing.T) {
 			stats, _ := p.Calculate()
 			for _, s := range stats {
 				m := s.ToModel()
-				m.Inflation = fmt.Sprintf("%.2f%%", p.Inflation)
-				m.IncomeGrowth = fmt.Sprintf("%.2f%%", p.YearlyDepositGrowthRate)
+				m.Inflation = p.Inflation
+				m.IncomeGrowth = p.YearlyDepositGrowthRate
 				models = append(models, m)
 			}
 
