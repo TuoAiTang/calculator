@@ -7,6 +7,7 @@ import (
 
 	"github.com/TuoAiTang/gotable/color"
 	"github.com/TuoAiTang/gotable/table"
+	"github.com/tuoaitang/calculator/model"
 )
 
 type Params struct {
@@ -32,11 +33,24 @@ func (p *Params) Print() {
 
 // YearlyStats 每年的统计数据
 type YearlyStats struct {
-	Age             int     // 年龄
-	YearEndDeposit  float64 // 年末存款
-	Cost            float64 // 支出
-	FinancialIncome float64 // 理财收入
-	YearlyDeposit   float64 // 年存款
+	Age             int     `gorm:"column:age"`              // 年龄
+	YearEndDeposit  float64 `gorm:"column:year_end_deposit"` // 年末存款
+	Cost            float64 `gorm:"column:cost"`             // 支出
+	FinancialIncome float64 `gorm:"column:financial_income"` // 理财收入
+	YearlyDeposit   float64 `gorm:"column:yearly_deposit"`   // 年存款
+	CanCover        bool    `gorm:"column:can_cover"`        // 是否能够覆盖支出
+}
+
+// ToModel
+func (y YearlyStats) ToModel() model.YearlyStats {
+	return model.YearlyStats{
+		Age:             y.Age,
+		YearEndDeposit:  FormatW(y.YearEndDeposit),
+		Cost:            FormatW(y.Cost),
+		FinancialIncome: FormatW(y.FinancialIncome),
+		YearlyDeposit:   FormatW(y.YearlyDeposit),
+		CanCover:        y.CanCover,
+	}
 }
 
 // IsFreedom
@@ -44,8 +58,16 @@ func (y YearlyStats) IsFreedom() bool {
 	return y.FinancialIncome > y.Cost
 }
 
+func ToModels(stats []YearlyStats) []model.YearlyStats {
+	models := make([]model.YearlyStats, 0)
+	for _, s := range stats {
+		models = append(models, s.ToModel())
+	}
+	return models
+}
+
 // Calculate 计算
-func (p *Params) Calculate() []YearlyStats {
+func (p *Params) Calculate() ([]YearlyStats, int) {
 	p.Print()
 	yearlyStats := make([]YearlyStats, 0)
 	yearlyStats = append(yearlyStats, YearlyStats{
@@ -54,9 +76,11 @@ func (p *Params) Calculate() []YearlyStats {
 		Cost:            p.YearCost,
 		FinancialIncome: 0,
 		YearlyDeposit:   p.CurrentMonthlyDeposit * 12 / (1 + p.YearlyDepositGrowthRate/100),
+		CanCover:        false,
 	})
 
 	lastStats := yearlyStats[0]
+	index := -1
 	for lastStats.Age < 60 {
 		currentStats := YearlyStats{
 			Age:             lastStats.Age + 1,
@@ -67,10 +91,15 @@ func (p *Params) Calculate() []YearlyStats {
 		}
 
 		currentStats.YearEndDeposit = lastStats.YearEndDeposit + currentStats.FinancialIncome + currentStats.YearlyDeposit
+		currentStats.CanCover = currentStats.FinancialIncome > currentStats.Cost
 		yearlyStats = append(yearlyStats, currentStats)
+		if currentStats.CanCover && index == -1 {
+			index = len(yearlyStats) - 1
+		}
+
 		lastStats = currentStats
 	}
-	return yearlyStats
+	return yearlyStats, index
 }
 
 // Output
