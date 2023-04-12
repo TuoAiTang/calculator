@@ -171,8 +171,17 @@ func ToLine(data []YearlyStats) error {
 
 	line.SetGlobalOptions(
 		echarts.WithTitleOpts(opts.Title{
-			Title:    "年龄-收入、支出",
+			Title:    "income-cost yearly change",
 			Subtitle: "It's extremely easy to use, right?",
+			Left:     "37%",
+		}),
+		echarts.WithYAxisOpts(opts.YAxis{
+			Type:        "value",
+			Scale:       true,
+			SplitNumber: 20,
+			Min:         "dataMin",
+			Max:         "dataMax",
+			AxisLabel:   &opts.AxisLabel{Formatter: "{value}w"},
 		}),
 	)
 	line.SetSeriesOptions(
@@ -188,8 +197,8 @@ func ToLine(data []YearlyStats) error {
 	costValues := make([]opts.LineData, 0)
 	for _, v := range data {
 		xValues = append(xValues, strconv.FormatInt(int64(v.Age), 10))
-		incomeValues = append(incomeValues, opts.LineData{Value: v.FinancialIncome})
-		costValues = append(costValues, opts.LineData{Value: v.Cost})
+		incomeValues = append(incomeValues, opts.LineData{Value: fmt.Sprintf("%.2f", v.FinancialIncome/10000.00)})
+		costValues = append(costValues, opts.LineData{Value: fmt.Sprintf("%.2f", v.Cost/10000.00)})
 	}
 	line.SetXAxis(xValues).AddSeries("理财收入", incomeValues).AddSeries("支出", costValues)
 
