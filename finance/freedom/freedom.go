@@ -10,6 +10,10 @@ import (
 	"github.com/tuoaitang/calculator/model"
 )
 
+type FreedomCalculator struct {
+	Params *Params
+}
+
 type Params struct {
 	CurrentAge              int     // 当前年龄
 	DepositInitial          float64 // 初始存款
