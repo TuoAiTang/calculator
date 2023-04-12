@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/apache/thrift/lib/go/thrift"
+	echarts "github.com/go-echarts/go-echarts/v2/charts"
+	echarts_opts "github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/tuoaitang/calculator/db"
 	"github.com/tuoaitang/calculator/model"
 	"github.com/vicanso/go-charts/v2"
@@ -215,4 +217,51 @@ func TestParams_Calculate2(t *testing.T) {
 	}
 
 	defer file.Close()
+}
+
+func TestParams_Calculate3(t *testing.T) {
+	p := &Params{
+		CurrentAge:              25,
+		DepositInitial:          1000000,
+		CurrentMonthlyDeposit:   25000,
+		YearlyDepositGrowthRate: 5,
+		YearCost:                120000,
+		Inflation:               3,
+		FinancialIncomeRate:     6,
+	}
+
+	stats, _ := p.Calculate()
+	var xValues []string
+
+	costValues := make([]echarts_opts.BarData, 0)
+	incomeValues := make([]echarts_opts.BarData, 0)
+	for _, s := range stats {
+		xValues = append(xValues, strconv.FormatInt(int64(s.Age), 10))
+		costValues = append(costValues, echarts_opts.BarData{
+			Value: s.Cost,
+		})
+		incomeValues = append(incomeValues, echarts_opts.BarData{
+			Value: s.FinancialIncome,
+		})
+	}
+
+	bar := echarts.NewBar()
+	bar.SetGlobalOptions(
+		echarts.WithTitleOpts(echarts_opts.Title{
+			Title:    "年龄-收入、支出",
+			Subtitle: "It's extremely easy to use, right?",
+		}),
+		echarts.WithLegendOpts(echarts_opts.Legend{
+			Show: true,
+			Data: []string{"收入", "支出"},
+		}),
+	)
+
+	// Put data into instance
+	bar.SetXAxis(xValues).
+		AddSeries("income", incomeValues).
+		AddSeries("cost", costValues)
+	// Where the magic happens
+	f, _ := os.Create(fmt.Sprintf("bar.html"))
+	bar.Render(f)
 }
