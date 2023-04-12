@@ -7,6 +7,8 @@ import (
 
 	"github.com/TuoAiTang/gotable/color"
 	"github.com/TuoAiTang/gotable/table"
+	echarts "github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/tuoaitang/calculator/model"
 )
 
@@ -161,4 +163,17 @@ func Output(yearlyStats []YearlyStats) {
 // FormatW
 func FormatW(v float64) string {
 	return fmt.Sprintf("%.2fw", v/1e4)
+}
+
+func ToLine(data []YearlyStats) error {
+	line := echarts.NewLine()
+	line.SetSeriesOptions(
+		echarts.WithLabelOpts(opts.Label{
+			Show:      true,
+			Color:     "",
+			Position:  "",
+			Formatter: "",
+		}),
+	)
+	return nil
 }

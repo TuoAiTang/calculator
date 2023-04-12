@@ -11,6 +11,7 @@ import (
 	"github.com/apache/thrift/lib/go/thrift"
 	echarts "github.com/go-echarts/go-echarts/v2/charts"
 	echarts_opts "github.com/go-echarts/go-echarts/v2/opts"
+	"github.com/stretchr/testify/assert"
 	"github.com/tuoaitang/calculator/db"
 	"github.com/tuoaitang/calculator/model"
 	"github.com/vicanso/go-charts/v2"
@@ -239,9 +240,17 @@ func TestParams_Calculate3(t *testing.T) {
 		xValues = append(xValues, strconv.FormatInt(int64(s.Age), 10))
 		costValues = append(costValues, echarts_opts.BarData{
 			Value: s.Cost,
+			Label: &echarts_opts.Label{
+				Show:      true,
+				Formatter: fmt.Sprintf("{c}w"),
+			},
 		})
 		incomeValues = append(incomeValues, echarts_opts.BarData{
 			Value: s.FinancialIncome,
+			Label: &echarts_opts.Label{
+				Show:      true,
+				Formatter: fmt.Sprintf("{c}w"),
+			},
 		})
 	}
 
@@ -257,6 +266,26 @@ func TestParams_Calculate3(t *testing.T) {
 		}),
 	)
 
+	bar.SetSeriesOptions(
+		echarts.WithLabelOpts(echarts_opts.Label{
+			Show:      true,
+			Color:     "",
+			Position:  "",
+			Formatter: "",
+		}),
+		echarts.WithBarChartOpts(echarts_opts.BarChart{
+			Type:           "",
+			Stack:          "",
+			BarGap:         "",
+			BarCategoryGap: "",
+			XAxisIndex:     0,
+			YAxisIndex:     0,
+			ShowBackground: false,
+			RoundCap:       false,
+			CoordSystem:    "",
+		}),
+	)
+
 	// Put data into instance
 	bar.SetXAxis(xValues).
 		AddSeries("income", incomeValues).
@@ -264,4 +293,20 @@ func TestParams_Calculate3(t *testing.T) {
 	// Where the magic happens
 	f, _ := os.Create(fmt.Sprintf("bar.html"))
 	bar.Render(f)
+}
+
+func TestToLine(t *testing.T) {
+	p := &Params{
+		CurrentAge:              25,
+		DepositInitial:          1000000,
+		CurrentMonthlyDeposit:   25000,
+		YearlyDepositGrowthRate: 5,
+		YearCost:                120000,
+		Inflation:               3,
+		FinancialIncomeRate:     6,
+	}
+
+	stats, _ := p.Calculate()
+	err := ToLine(stats)
+	assert.NotNil(t, err)
 }
