@@ -2,6 +2,7 @@ package finance
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -167,13 +168,33 @@ func FormatW(v float64) string {
 
 func ToLine(data []YearlyStats) error {
 	line := echarts.NewLine()
+
+	line.SetGlobalOptions(
+		echarts.WithTitleOpts(opts.Title{
+			Title:    "年龄-收入、支出",
+			Subtitle: "It's extremely easy to use, right?",
+		}),
+	)
 	line.SetSeriesOptions(
 		echarts.WithLabelOpts(opts.Label{
 			Show:      true,
 			Color:     "",
 			Position:  "",
-			Formatter: "",
+			Formatter: "{a}",
 		}),
 	)
+	xValues := make([]string, 0)
+	incomeValues := make([]opts.LineData, 0)
+	costValues := make([]opts.LineData, 0)
+	for _, v := range data {
+		xValues = append(xValues, strconv.FormatInt(int64(v.Age), 10))
+		incomeValues = append(incomeValues, opts.LineData{Value: v.FinancialIncome})
+		costValues = append(costValues, opts.LineData{Value: v.Cost})
+	}
+	line.SetXAxis(xValues).AddSeries("理财收入", incomeValues).AddSeries("支出", costValues)
+
+	// Where the magic happens
+	f, _ := os.Create(fmt.Sprintf("line.html"))
+	line.Render(f)
 	return nil
 }

@@ -308,5 +308,5 @@ func TestToLine(t *testing.T) {
 
 	stats, _ := p.Calculate()
 	err := ToLine(stats)
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 }
