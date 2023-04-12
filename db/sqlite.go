@@ -8,7 +8,7 @@ import (
 var Finance *gorm.DB
 
 func init() {
-	Init("finance.db")
+	Init("/Users/tuocheng/go/src/github.com/tuoaitang/calculator/finance/finance.db")
 }
 
 func Init(dbName string) {

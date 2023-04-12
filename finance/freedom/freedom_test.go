@@ -1,10 +1,18 @@
 package finance
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"strconv"
 	"testing"
+	"time"
 
+	"github.com/apache/thrift/lib/go/thrift"
 	"github.com/tuoaitang/calculator/db"
 	"github.com/tuoaitang/calculator/model"
+	"github.com/vicanso/go-charts/v2"
+	"github.com/wcharczuk/go-chart/v2"
 )
 
 func TestParams_Calculate(t *testing.T) {
@@ -45,4 +53,166 @@ func TestParams_Calculate(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestParams_Calculate1(t *testing.T) {
+	p := &Params{
+		CurrentAge:              25,
+		DepositInitial:          1000000,
+		CurrentMonthlyDeposit:   25000,
+		YearlyDepositGrowthRate: 5,
+		YearCost:                120000,
+		Inflation:               3,
+		FinancialIncomeRate:     6,
+	}
+
+	stats, _ := p.Calculate()
+	var xValues []string
+	yValues := make([][]float64, 2)
+
+	costValues := make([]float64, 0)
+	incomeValues := make([]float64, 0)
+	for _, s := range stats {
+		xValues = append(xValues, strconv.FormatInt(int64(s.Age), 10))
+		costValues = append(costValues, s.Cost)
+		incomeValues = append(incomeValues, s.FinancialIncome)
+	}
+
+	yValues[0] = costValues
+	yValues[1] = incomeValues
+
+	painter, err := charts.LineRender(
+		yValues,
+		charts.XAxisOptionFunc(charts.XAxisOption{
+			Data: xValues,
+			//SplitNumber: 1,
+		}),
+		charts.TitleTextOptionFunc("income-cost"),
+		charts.LegendLabelsOptionFunc([]string{"cost", "income"}, charts.PositionCenter),
+		charts.ThemeOptionFunc("grafana"),
+		charts.WidthOptionFunc(1000),
+		charts.HeightOptionFunc(1000),
+		charts.SVGTypeOption(),
+
+		charts.YAxisOptionFunc(charts.YAxisOption{
+			//Min:         thrift.Float64Ptr(12.0),
+			//Max:         thrift.Float64Ptr(1.0),
+			Font:        nil,
+			Data:        nil,
+			Theme:       nil,
+			FontSize:    0,
+			Position:    "left",
+			FontColor:   charts.Color{},
+			Formatter:   "{value}w",
+			Color:       charts.Color{},
+			Show:        thrift.BoolPtr(true),
+			DivideCount: 10000,
+			Unit:        10000,
+		}),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	file, err := os.Create(fmt.Sprintf("%d.svg", time.Now().Unix()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bytes, err := painter.Bytes()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = file.Write(bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer file.Close()
+
+}
+
+func TestParams_Calculate2(t *testing.T) {
+	p := &Params{
+		CurrentAge:              25,
+		DepositInitial:          1000000,
+		CurrentMonthlyDeposit:   25000,
+		YearlyDepositGrowthRate: 5,
+		YearCost:                120000,
+		Inflation:               3,
+		FinancialIncomeRate:     6,
+	}
+
+	stats, _ := p.Calculate()
+	var xValues []string
+
+	costValues := make([]float64, 0)
+	incomeValues := make([]float64, 0)
+	for _, s := range stats {
+		xValues = append(xValues, strconv.FormatInt(int64(s.Age), 10))
+		costValues = append(costValues, s.Cost)
+		incomeValues = append(incomeValues, s.FinancialIncome)
+	}
+
+	options := &charts.EChartsOption{
+		Type:       "Line",
+		Theme:      "",
+		FontFamily: "",
+		Padding:    charts.EChartsPadding{},
+		Box:        chart.Box{},
+		Width:      0,
+		Height:     0,
+		Title: struct {
+			Text         string                  `json:"text"`
+			Subtext      string                  `json:"subtext"`
+			Left         charts.EChartsPosition  `json:"left"`
+			Top          charts.EChartsPosition  `json:"top"`
+			TextStyle    charts.EChartsTextStyle `json:"textStyle"`
+			SubtextStyle charts.EChartsTextStyle `json:"subtextStyle"`
+		}{
+			Text:    "income-cost",
+			Subtext: "sub-text",
+		},
+		XAxis: charts.EChartsXAxis{
+			Data: []charts.EChartsXAxisData{
+				charts.EChartsXAxisData{
+					Data: xValues,
+				},
+			},
+		},
+		YAxis:  charts.EChartsYAxis{},
+		Legend: charts.EChartsLegend{},
+		Radar: struct {
+			Indicator []charts.RadarIndicator `json:"indicator"`
+		}{},
+		Series: charts.EChartsSeriesList([]charts.EChartsSeries{
+			charts.EChartsSeries{
+				Data: []charts.EChartsSeriesData{
+					charts.EChartsSeriesData{
+						Value: charts.NewEChartsSeriesDataValue(costValues...),
+					},
+				},
+			},
+		}),
+		Children: nil,
+	}
+
+	optionsBytes, _ := json.Marshal(options)
+	bytes, err := charts.RenderEChartsToSVG(string(optionsBytes))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	file, err := os.Create(fmt.Sprintf("%d.svg", time.Now().Unix()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = file.Write(bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer file.Close()
 }
