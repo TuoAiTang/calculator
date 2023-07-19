@@ -310,3 +310,18 @@ func TestToLine(t *testing.T) {
 	err := ToLine(stats)
 	assert.Nil(t, err)
 }
+
+func TestOutput(t *testing.T) {
+	p := &Params{
+		CurrentAge:              25,
+		DepositInitial:          1000000,
+		CurrentMonthlyDeposit:   25000,
+		YearlyDepositGrowthRate: 5,
+		YearCost:                120000,
+		Inflation:               3,
+		FinancialIncomeRate:     6,
+	}
+
+	stats, _ := p.Calculate()
+	Output(stats)
+}
