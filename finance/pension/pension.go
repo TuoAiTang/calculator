@@ -59,7 +59,7 @@ func (p Param) String() string {
 	s += fmt.Sprintf("期望缴费年限: %.2f\n", p.PayYear)
 	s += fmt.Sprintf("缴费期间月平均工资: %.2f\n", p.SalaryAvgBeforeRetire)
 	s += fmt.Sprintf("期望退休年龄: %d\n", int(p.ExpectAge))
-	s += fmt.Sprintf("平均寿命: %d\n", int(p.LifeYearAvg))
+	s += fmt.Sprintf("平均寿命: %.1f\n", p.LifeYearAvg)
 	s += fmt.Sprintf("缴纳所在地缴费基数上限: %.2f\n", p.PayUpLimit)
 	return s
 }
