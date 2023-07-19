@@ -10,7 +10,7 @@ var RootCmd = &cobra.Command{
 	Use:   "calc",
 	Short: "计算器",
 	Long: `当前支持的任务命令：
-1. calc pension 15 6500 (计算缴费年限为15年,当前月薪为6500元的情况下养老金待遇) 
+1. calc pension 15 6500 60 (计算缴费年限为15年,当前月薪为6500元,60岁退休的情况下养老金待遇) 
 	`,
 }
 

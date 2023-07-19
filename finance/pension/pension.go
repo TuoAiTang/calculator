@@ -17,7 +17,7 @@ const (
 )
 
 func CalcPension(cmd *cobra.Command, args []string) {
-	if len(args) != 2 {
+	if len(args) != 3 {
 		fmt.Println("参数错误")
 		return
 	}
@@ -26,7 +26,7 @@ func CalcPension(cmd *cobra.Command, args []string) {
 		RetireCitySalaryAvg:   ChengduAvgSalaryYear / 12,
 		PayYear:               parseFloat(args[0]),
 		SalaryAvgBeforeRetire: parseFloat(args[1]),
-		ExpectAge:             60,
+		ExpectAge:             parseFloat(args[2]),
 		LifeYearAvg:           AvgLifeYear,
 		PayUpLimit:            BeijingUpLimit,
 	}
