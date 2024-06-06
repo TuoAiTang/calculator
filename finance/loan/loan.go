@@ -8,7 +8,7 @@ import (
 // 等额本息: 每月还款额=[贷款本金×月利率×（1+月利率）^还款月数]÷[（1+月利率）^还款月数－1]
 func EqualInterest(principal float64, year float64) (monthRepay float64) {
 	month := year * 12
-	monthRate := 0.04 / 12
+	monthRate := 0.0375 / 12
 	monthRepay = principal * monthRate * math.Pow(1+monthRate, month) / (math.Pow(1+monthRate, month) - 1)
 	fmt.Printf("等额本息(%s贷款%d年): 每个月还款%.2f\n", FormatW(principal), int(year), monthRepay)
 	return
